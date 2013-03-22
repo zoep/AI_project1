@@ -69,7 +69,7 @@ aStar neighbours g h isFinal root =
             Nothing -> Nothing
             Just target -> Just (backtrack target (ancestor state) [])
   where backtrack n paths acc
-          | n == root = acc
+          | n == root = n : acc
           | otherwise = backtrack (paths ! n) paths (n : acc)
 
 
