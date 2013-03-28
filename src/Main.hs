@@ -1,8 +1,11 @@
+{-# OPTIONS_GHC -O2 -optc-O2 #-}
+
 import qualified Data.String as String
 import qualified Data.Map as Map
 import qualified Data.List as List
 import qualified Data.Set as Set
 import qualified AStar as AStar
+import Data.Time
 import System.Random
 
 data Point = Point { x :: Int,
@@ -60,10 +63,14 @@ main =
       grid <- readGrid 0 (y grid_size) Map.empty
       let robot1 = Robot {position = a_pos, velocity = 1}
       let robot2 = Robot {position = b_pos, velocity = 1}
-      path <- findRobot robot1 robot2 grid
+      start_time <- getCurrentTime
+      (path, total) <- findRobot robot1 robot2 grid
+      stop_time <- getCurrentTime
       case path of
             Nothing   -> putStr $ show "Robot1 could not meet with Robot2\n"
             Just path -> putStr $ show path ++ "\n" 
+      putStr $ "nodes searched: " ++  (show total) ++ "\n"
+      print $ diffUTCTime stop_time start_time
   where toPoint str = 
             case String.words str of
                   [a, b] -> Just Point { x = read a, y = read b}
@@ -78,25 +85,25 @@ main =
         findPath (x : xs) acc = findPath xs ((position x) : acc)
         findRobot robot1 robot2 grid =
           do
-              states <- findRobot' robot1 robot2 [] 
+              (states, total) <- findRobot' robot1 robot2 [] 0
               case states of
-                 Nothing     -> return Nothing
-                 Just states -> return (Just (findPath states []))
-           where findRobot' robot1 robot2 acc = 
+                 Nothing     -> return (Nothing, total)
+                 Just states -> return (Just (findPath states []), total)
+           where findRobot' robot1 robot2 acc total = 
                     do
                         aMove <- moveRandom grid robot2 
                         case aMove of
-                              Nothing    -> return Nothing
+                              Nothing    -> return (Nothing, total)
                               Just aMove -> 
                                       let robot2' = aMove in 
-                                      let robotStates = AStar.aStar (movesRobot grid) (\x y -> 1) (heuristic robot2') (samePosition robot2') robot1 in
+                                      let (robotStates, nr_nodes) = AStar.aStar (movesRobot grid) (\x y -> 1) (heuristic robot2') (samePosition robot2') robot1 in
                                         case robotStates of
-                                              Nothing                         -> return Nothing
-                                              Just []                         -> return (Just acc)
-                                              Just [step1]                    -> return (Just (step1 : acc))
-                                              Just [step1, step2]             -> return (Just (step2 : step1 : acc))
-                                              Just [step1, step2, step3]      -> return (Just (step3 : step2 : step1 : acc))
-                                              Just (step1 : step2 : step3 : xs) -> (findRobot' step3 robot2' (step2 : step1 : acc))
+                                              Nothing                         -> return (Nothing, nr_nodes)
+                                              Just []                         -> return ((Just acc), total + nr_nodes)
+                                              Just [step1]                    -> return (Just (step1 : acc), total + nr_nodes)
+                                              Just [step1, step2]             -> return (Just (step2 : step1 : acc), total + nr_nodes)
+                                              Just [step1, step2, step3]      -> return (Just (step3 : step2 : step1 : acc), total + nr_nodes)
+                                              Just (step1 : step2 : step3 : xs) -> findRobot' step3 robot2' (step2 : step1 : acc) (nr_nodes + total)
                  samePosition robot robot' = (position robot) == (position robot')
                  heuristic target source = manhattanNorm (position target) (position source)
 

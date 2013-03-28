@@ -61,13 +61,13 @@ aStar :: (Ord a, Ord c, Num c) =>
          -> (a -> c)      --  Heuristic funtion
          -> (a -> Bool)   --  Function determining whether a state is final
          -> a             --  Root node
-         -> Maybe [a]     --  An optimal path if exists
+         -> (Maybe [a], Int)     --  An optimal path if exists
 
 aStar neighbours g h isFinal root =
     let state = traverse neighbours g h isFinal root in
         case (final state) of
-            Nothing -> Nothing
-            Just target -> Just (backtrack target (ancestor state) [])
+            Nothing -> (Nothing, Set.size (visited state))
+            Just target -> (Just (backtrack target (ancestor state) []), Set.size (visited state))
   where backtrack n paths acc
           | n == root = n : acc
           | otherwise = backtrack (paths ! n) paths (n : acc)
