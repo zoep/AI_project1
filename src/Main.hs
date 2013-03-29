@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -O2 -optc-O2 #-}
-
 import qualified Data.String as String
 import qualified Data.Map as Map
 import qualified Data.List as List
@@ -16,6 +14,7 @@ data Robot = Robot { position :: Point,
                      velocity :: Int }
     deriving (Show, Ord, Eq)
 
+moveRandom ::  Map.Map Point Char -> Robot -> IO (Maybe Robot)
 moveRandom grid robot = do
       let moves = movesRobot grid robot
       case Set.null moves of
@@ -24,6 +23,7 @@ moveRandom grid robot = do
                       index <- getStdRandom $ randomR (0, (Set.size moves) - 1)
                       return (Just ((Set.toList moves) List.!! index))
 
+movesRobot ::  Map.Map Point Char -> Robot -> Set.Set Robot
 movesRobot grid robot = moveRobot robot Set.empty
   where moveRobot robot moves =
           let pos = (position robot) in
@@ -50,7 +50,14 @@ movesRobot grid robot = moveRobot robot Set.empty
               Just 'O' -> Set.insert (robot { position = move}) moves
               otherwise -> moves
 
+manhattanNorm ::  Point -> Point -> Int
 manhattanNorm target source = (abs $ (x target) - (x source)) + (abs $ (y target) - (y source))
+
+euclideanNorm ::  Integral b => Point -> Point -> b
+euclideanNorm target source = floor $ sqrt (fromIntegral (a*a + b*b))
+  where
+       a = (x target) - (x source)
+       b = (y target) - (y source)
 
 main ::  IO ()
 main = 

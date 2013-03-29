@@ -58,7 +58,7 @@ traverse neighbours g h isFinal root = traverse' (rootState root)
 aStar :: (Ord a, Ord c, Num c) =>
          (a -> Set a)     --  Function returning neighbours of a node
          -> (a -> a -> c) --  Distance function 
-         -> (a -> c)      --  Heuristic funtion
+         -> (a -> c)      --  Heuristic function
          -> (a -> Bool)   --  Function determining whether a state is final
          -> a             --  Root node
          -> (Maybe [a], Int)     --  An optimal path if exists
