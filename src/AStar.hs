@@ -28,16 +28,18 @@ traverse :: (Ord n, Ord c, Num c) =>
          -> (n -> c)      -- heuristic function
          -> (n -> Bool)   -- is final?
          -> n             -- root node
+         -> Maybe Int
          -> AStar n c     -- final state
          
-traverse neighbours g h isFinal root = traverse' (rootState root) 
-  where traverse' state = 
+traverse neighbours g h isFinal root limit = traverse' (-1) (rootState root) 
+  where traverse' cnt state = 
           case PQ.minView (openSet state) of
             Nothing -> state
             Just (x :-> _, openSet') ->
-              case (isFinal x) of
-                True  -> state { final = Just x }
-                False -> traverse' $ Set.foldl' (explore x) 
+              case ((isFinal x), reachedLimit limit (cnt+1)) of
+                (_, True)      -> state { final = Just x }
+                (True, _)      -> state { final = Just x}
+                (False, False) -> traverse' (cnt + 1) $ Set.foldl' (explore x) 
                                                 (state { openSet = openSet',
                                                      visited = Set.insert x (visited state)})
                                                 (Set.difference (neighbours x) (visited state))
@@ -52,8 +54,11 @@ traverse neighbours g h isFinal root = traverse' (rootState root)
         newState parent child dist state = 
             state { ancestor = Map.insert child parent (ancestor state),
                     distance = Map.insert child dist (distance state),
-                    openSet = PQ.insert child (dist + ((heuristic state) ! child)) (openSet state) } 
-                
+                    openSet = PQ.insert child (dist + ((heuristic state) ! child)) (openSet state) }
+        reachedLimit limit cnt =
+          case limit of
+            Nothing -> False
+            Just lim -> lim == cnt
  
 aStar :: (Ord a, Ord c, Num c) =>
          (a -> Set a)     --  Function returning neighbours of a node
@@ -61,15 +66,15 @@ aStar :: (Ord a, Ord c, Num c) =>
          -> (a -> c)      --  Heuristic function
          -> (a -> Bool)   --  Function determining whether a state is final
          -> a             --  Root node
+         -> Maybe Int
          -> (Maybe [a], Int)     --  An optimal path if exists
 
-aStar neighbours g h isFinal root =
-    let state = traverse neighbours g h isFinal root in
+aStar neighbours g h isFinal root limit =
+    let state = traverse neighbours g h isFinal root limit in
         case (final state) of
             Nothing -> (Nothing, Set.size (visited state))
             Just target -> (Just (backtrack target (ancestor state) []), Set.size (visited state))
   where backtrack n paths acc
-          | n == root = n : acc
+          | n == root = acc
           | otherwise = backtrack (paths ! n) paths (n : acc)
-
 
