@@ -21,7 +21,11 @@
 \usepackage{textcomp}
 \usepackage{fullpage} 
 \usepackage{url} 
-
+\usepackage{doc}
+\usepackage{xcolor}
+\usepackage{tabu}
+\usepackage{colortbl}
+\usepackage{float}
 
 
 \definecolor{lightgray}{gray}{0.98}
@@ -170,9 +174,69 @@ euclideanNorm ::  Integral b => Point -> Point -> b
 Και οι δύο συναρτήσεις παίρνουν ως όρισμα δύο σημεία του χώρου, όπως τα ορίσαμε με βάση τον τύπο Point και επιστρέφουν έναν ακέραιο.
 \section{Στατιστικά αποτελέσματα}
 Σε αυτή την ενότητα παραθέτουμε γραφήματα που αναπαριστούν το συνολικό χρόνο εκτέλεσης συναρτήσει των καταστάσεων που παράχθηκαν κατά τη διαδικασία αναζήτησης. Για την παραγωγή των στατιστικών αποτελεσμάτων χρησιμοποιήσαμε 6 test-cases διαφορετικού μεγέθους. Οι δοκιμές έγιναν και με τη χρήση υπο-εκτιμητή (admissible heuristic) και με τη χρήση υπερ-εκτιμητή  (non-admissible heuristic).
+
+\begin{figure}[H]
+\taburowcolors[2]{white .. black!20}
+\sffamily\footnotesize
+\tabulinesep=6pt
+\begin{tabu}{|>{\cellcolor{black!80}\color{white}}c|X[cm]|X[cm]|X[cm]|}
+\hline
+\rowcolor{black!80}\strut \color{white}Testcase & \color{white}Grid 1 & \color{white}Robot 1 & \color{white} Robot 2 \\
+test1  &  (99, 50)  &  (15, 2) & (84, 89) \\
+test2  &  (99, 200) & (1, 1) & (99, 200) \\
+test3  &  (168, 60) & (4, 20) & (160, 40) \\
+test4  &  (99, 100) & (3, 11) & (80, 95) \\
+test5  &  (99, 100) & (1, 1) & (89, 95) \\
+test6  &  (180, 180) & (4, 1) & ( 180, 179) \\
+\hline
+\end{tabu}
+\caption{Παράμετροι testcase}
+\end{figure}
+
 \subsection{Admissible heuristic}
+\begin{figure}[H]
+\taburowcolors[2]{white .. black!20}
+\sffamily\footnotesize
+\tabulinesep=6pt
+\begin{tabu}{|>{\cellcolor{black!80}\color{white}}c|X[cm]|X[cm]|}
+\hline
+\rowcolor{black!80}\strut \color{white}Testcase & \color{white}States & \color{white}Time \\
+test1  &  31019  & 0.3735411 \\
+test2  &  668160 & 9.4400402 \\
+test3  &  741269 & 0.9625383 \\
+test4  &  90544  & 1.2119474 \\
+test5  &  131380 & 1.6911385 \\
+test6  &  402761	& 5.683861 \\
+\hline
+\end{tabu}
+\caption{Στατιστικα για admissable heuristic}
+\end{figure}
 \subsection{Non-admissible heuristic}
+\begin{figure}[H]
+\taburowcolors[2]{white .. black!20}
+\sffamily\footnotesize
+\tabulinesep=6pt
+\begin{tabu}{|>{\cellcolor{black!80}\color{white}}c|X[cm]|X[cm]|}
+\hline
+\rowcolor{black!80}\strut \color{white}Testcase & \color{white}States & \color{white}Time \\
+test1  &  52339  & 0.904490 \\
+test2  &  762485 & 5.317863 \\
+test3  &  762206 & 3.363726 \\
+test4  &  135462 & 2.503978 \\
+test5  &  187470 & 3.427900 \\
+test6  &  933037 & 	17.596179 \\
+\hline
+\end{tabu}
+\caption{Στατιστικα για non-admissable heuristic}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.35]{../datafiles/graph.png}
+\end{center}
+\caption{Γραφική παράσταση για admissable και non-admissable heuristic }
+\end{figure}
+
 \section{Σχολιασμός αποτελεσμάτων}
-\section{Πηγαίος κώδικας}
-Ο πηγαίος κώδικας του προγράμματος είναι διαθέσιμος στο \href{https://github.com/zoep/ECC-OCaml}{Github}.
+Παρατηρούμε ότι και στα έξι testcase που δοκιμάσαμε η non-admissible ευριστική χρειάζεται να κατασκευάσει μεγαλύτερο δέντρο αναζήτησης, δηλαδή να παράγει περισσότερα states. Αυτό συμβαίνει επειδή η χρήση admissible ευριστικής αποτελεί απαραίτητη συνθήκη για να μπορέσει να βρεί ένα βέλτιστο μονοπάτι. Με τη χρήση non-admissible ευριστικής ο αλγόριθμος μπορεί να εξετάσει μονοπάτια που κανονικά δε θα έπρεπε, επειδή δεν είναι βέλτιστα, αλλά λόγω της υπερ-εκτίμησης ο αλγόριθμος δε το γνωρίζει αυτό και δε μπορεί να τα "κλαδέψει".
 \end{document}

@@ -66,7 +66,7 @@ aStar :: (Ord a, Ord c, Num c, Show a, Show c) =>
 aStar neighbours g h isFinal root =
     let state = traverse neighbours g h isFinal root in
         case (final state) of
-            Nothing -> (Nothing, Set.size (visited state))
+            Nothing -> (Nothing, (Set.size (visited state)) + (PQ.size (openSet state)))
             Just target -> (Just (backtrack target (ancestor state) []), Set.size (visited state))
   where backtrack n paths acc
           | n == root = acc
