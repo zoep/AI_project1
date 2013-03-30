@@ -10,3 +10,6 @@ cabal-dev
 *.out
 *.gz
 *.toc
+.*.swp
+.*.*.swp
+.DS_Store

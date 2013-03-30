@@ -6,6 +6,7 @@ import Data.Map (Map, (!))
 import Data.Set (Set)
 import Data.PSQueue (PSQ, Binding(..))
 import qualified Data.PSQueue as PQ
+import Debug.Trace
 
 data AStar node cost = AStar { visited   :: !(Set node),
                                openSet   :: !(PSQ node cost),
@@ -22,24 +23,22 @@ rootState start = AStar { visited   = Set.empty,
                           ancestor  = Map.empty,
                           final     = Nothing }
                           
-traverse :: (Ord n, Ord c, Num c) =>
+traverse :: (Ord n, Ord c, Num c, Show n, Show c) =>
          (n -> Set n)     -- function returning neighbours of a node
          -> (n -> n -> c) -- distance function
          -> (n -> c)      -- heuristic function
          -> (n -> Bool)   -- is final?
          -> n             -- root node
-         -> Maybe Int
          -> AStar n c     -- final state
          
-traverse neighbours g h isFinal root limit = traverse' (-1) (rootState root) 
+traverse neighbours g h isFinal root = traverse' (-1) (rootState root) 
   where traverse' cnt state = 
           case PQ.minView (openSet state) of
             Nothing -> state
-            Just (x :-> _, openSet') ->
-              case ((isFinal x), reachedLimit limit (cnt+1)) of
-                (_, True)      -> state { final = Just x }
-                (True, _)      -> state { final = Just x}
-                (False, False) -> traverse' (cnt + 1) $ Set.foldl' (explore x) 
+            Just (x :-> b, openSet') -> 
+              case isFinal x of
+                True      -> state { final = Just x }
+                False     -> traverse' (cnt + 1) $ Set.foldl' (explore x) 
                                                 (state { openSet = openSet',
                                                      visited = Set.insert x (visited state)})
                                                 (Set.difference (neighbours x) (visited state))
@@ -55,22 +54,17 @@ traverse neighbours g h isFinal root limit = traverse' (-1) (rootState root)
             state { ancestor = Map.insert child parent (ancestor state),
                     distance = Map.insert child dist (distance state),
                     openSet = PQ.insert child (dist + ((heuristic state) ! child)) (openSet state) }
-        reachedLimit limit cnt =
-          case limit of
-            Nothing -> False
-            Just lim -> lim == cnt
  
-aStar :: (Ord a, Ord c, Num c) =>
+aStar :: (Ord a, Ord c, Num c, Show a, Show c) =>
          (a -> Set a)     --  Function returning neighbours of a node
          -> (a -> a -> c) --  Distance function 
          -> (a -> c)      --  Heuristic function
          -> (a -> Bool)   --  Function determining whether a state is final
          -> a             --  Root node
-         -> Maybe Int
          -> (Maybe [a], Int)     --  An optimal path if exists
 
-aStar neighbours g h isFinal root limit =
-    let state = traverse neighbours g h isFinal root limit in
+aStar neighbours g h isFinal root =
+    let state = traverse neighbours g h isFinal root in
         case (final state) of
             Nothing -> (Nothing, Set.size (visited state))
             Just target -> (Just (backtrack target (ancestor state) []), Set.size (visited state))
