@@ -13,3 +13,4 @@ cabal-dev
 .*.swp
 .*.*.swp
 .DS_Store
+*.sty
